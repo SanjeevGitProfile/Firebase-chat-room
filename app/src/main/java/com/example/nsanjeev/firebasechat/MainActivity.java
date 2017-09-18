@@ -8,6 +8,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseAnalytics mFirebaseAnalytics;
     private int SIGN_IN_REQUEST_CODE=123;
     private FirebaseListAdapter<ChatMessage> adapter;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
             // Load chat room contents
             displayChatMessages();
+            scrollMyListViewToBottom();
         }
-        FloatingActionButton fab =
-                (FloatingActionButton)findViewById(R.id.fab);
+
+        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,10 +83,13 @@ public class MainActivity extends AppCompatActivity {
 
                 // Clear the input
                 input.setText("");
+                scrollMyListViewToBottom();
             }
         });
+    }
 
-        ListView listOfMessages = (ListView)findViewById(R.id.list_of_messages);
+    private void displayChatMessages() {
+        final ListView listOfMessages = (ListView)findViewById(R.id.list_of_messages);
 
         adapter = new FirebaseListAdapter<ChatMessage>(this, ChatMessage.class,
                 R.layout.message, FirebaseDatabase.getInstance().getReference()) {
@@ -101,14 +107,12 @@ public class MainActivity extends AppCompatActivity {
                 // Format the date before showing it
                 messageTime.setText(DateFormat.format("dd-MM-yyyy (HH:mm:ss)",
                         model.getMessageTime()));
+
             }
         };
 
         listOfMessages.setAdapter(adapter);
-    }
-
-    private void displayChatMessages() {
-
+        listView = listOfMessages;
     }
 
     @Override
@@ -176,5 +180,16 @@ public class MainActivity extends AppCompatActivity {
             builder.show();
         }
         return true;
+    }
+
+    private void scrollMyListViewToBottom()
+    {
+        listView.post(new Runnable() {
+            @Override
+            public void run() {
+                // Select the last row so it will scroll into view...
+                listView.setSelection(adapter.getCount() - 1);
+            }
+        });
     }
 }
